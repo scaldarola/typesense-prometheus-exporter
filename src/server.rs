@@ -9,6 +9,7 @@ use crate::{
 use axum::extract::State;
 use axum::{routing::get, Router};
 use futures::future;
+use futures::future::join_all;
 use tokio::signal;
 
 pub(crate) async fn start_metrics_server(args: CliArgs) {
@@ -59,18 +60,28 @@ async fn root() -> &'static str {
 }
 
 async fn metrics_route_handler(State(args): State<Arc<CliArgs>>) -> String {
-    let (metrics_data, stats_data) = future::join(
-        get_typesense_metrics(args.clone()),
-        get_typesense_stats(args.clone()),
-    )
+    let client = reqwest::Client::new();
+    let targets = args.typesense_targets();
+
+    let scrapes = join_all(targets.into_iter().map(|target| {
+        let args = args.clone();
+        let client = client.clone();
+        async move {
+            let (metrics_res, stats_res) = future::join(
+                get_typesense_metrics(&client, args.as_ref(), &target),
+                get_typesense_stats(&client, args.as_ref(), &target),
+            )
+            .await;
+
+            prometheus_exp::TargetScrape {
+                host: target.host,
+                port: target.port,
+                metrics: metrics_res.ok(),
+                stats: stats_res.ok(),
+            }
+        }
+    }))
     .await;
 
-    let promdata = prometheus_exp::generate_metrics(
-        metrics_data.unwrap().clone(),
-        stats_data.unwrap().clone(),
-        args.clone(),
-    )
-    .await;
-
-    return promdata;
+    prometheus_exp::generate_metrics(scrapes)
 }
