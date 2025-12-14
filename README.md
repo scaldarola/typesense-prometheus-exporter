@@ -68,12 +68,26 @@ typesense-prometheus-exporter [OPTIONS] --typesense-host <TYPESENSE_HOST> --type
 
 ### Options
 
-- `--typesense-host <TYPESENSE_HOST>`: Typesense Host URL (env: TYPESENSE_HOST).
+- `--typesense-host <TYPESENSE_HOST>`: Typesense Host URL(s). Can be provided multiple times or as a comma-separated list (env: TYPESENSE_HOST). Each entry may optionally include a port (e.g. `tshost:8108`).
 - `--typesense-protocol <TYPESENSE_PROTOCOL>`: Typesense protocol (env: TYPESENSE_PROTOCOL, default: http).
 - `--typesense-api-key <TYPESENSE_API_KEY>`: Typesense API key (env: TYPESENSE_API_KEY).
 - `--typesense-port <TYPESENSE_PORT>`: Typesense port number (env: TYPESENSE_PORT, default: 8108).
 - `--exporter-bind-address <EXPORTER_BIND_ADDRESS>`: Internal server bind address (env: EXPORTER_BIND_ADDRESS, default: 0.0.0.0).
 - `--exporter-bind-port <EXPORTER_BIND_PORT>`: Internal server bind port (env: EXPORTER_BIND_PORT, default: 8888).
+
+### Multi-host examples
+
+Comma-separated via env var:
+
+```
+TYPESENSE_HOST="ts-a,ts-b:8109" TYPESENSE_API_KEY="..." typesense-prometheus-exporter
+```
+
+Repeatable flag:
+
+```
+typesense-prometheus-exporter --typesense-host ts-a --typesense-host ts-b:8109 --typesense-api-key "..."
+```
 
 ### Help and Version
 
