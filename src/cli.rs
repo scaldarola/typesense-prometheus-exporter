@@ -42,11 +42,31 @@ pub(crate) struct TypesenseTarget {
 
 impl CliArgs {
     pub(crate) fn typesense_targets(&self) -> Vec<TypesenseTarget> {
+        // Be forgiving about quoting / delimiter behavior across shells + docker env handling:
+        // - Accept `--typesense-host a,b,c` even if clap doesn't split it
+        // - Accept values with literal surrounding quotes
+        // - Ignore empty entries
         self.typesense_host
             .iter()
+            .flat_map(|entry| entry.split(','))
+            .map(|entry| strip_surrounding_quotes(entry.trim()))
+            .filter(|entry| !entry.is_empty())
             .map(|entry| parse_host_and_port(entry, self.typesense_port))
             .collect()
     }
+}
+
+fn strip_surrounding_quotes(input: &str) -> &str {
+    let trimmed = input.trim();
+    if trimmed.len() >= 2 {
+        let bytes = trimmed.as_bytes();
+        let first = bytes[0];
+        let last = bytes[bytes.len() - 1];
+        if (first == b'"' && last == b'"') || (first == b'\'' && last == b'\'') {
+            return &trimmed[1..trimmed.len() - 1];
+        }
+    }
+    trimmed
 }
 
 fn parse_host_and_port(input: &str, default_port: u16) -> TypesenseTarget {
