@@ -6,6 +6,9 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TypesenseStats {
+    pub cache_hit_count: f64,
+    pub cache_hit_ratio: f64,
+    pub cache_miss_count: f64,
     pub delete_latency_ms: f64,
     pub delete_requests_per_second: f64,
     pub import_latency_ms: f64,
@@ -26,6 +29,9 @@ pub struct TypesenseStats {
 impl Default for TypesenseStats {
     fn default() -> TypesenseStats {
         TypesenseStats {
+            cache_hit_count: 0.0,
+            cache_hit_ratio: 0.0,
+            cache_miss_count: 0.0,
             delete_latency_ms: 0.0,
 delete_requests_per_second: 0.0,
 import_latency_ms: 0.0,

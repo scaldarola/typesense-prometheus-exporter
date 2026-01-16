@@ -152,6 +152,15 @@ pub(crate) fn generate_metrics(scrapes: Vec<TargetScrape>) -> String {
 
         if let Some(ts_stats) = target.stats.as_ref() {
             typesense_stats
+                .with_label_values(&[&target.host, &port_str, "cache_hit_count"])
+                .set(ts_stats.cache_hit_count);
+            typesense_stats
+                .with_label_values(&[&target.host, &port_str, "cache_hit_ratio"])
+                .set(ts_stats.cache_hit_ratio);
+            typesense_stats
+                .with_label_values(&[&target.host, &port_str, "cache_miss_count"])
+                .set(ts_stats.cache_miss_count);
+            typesense_stats
                 .with_label_values(&[&target.host, &port_str, "delete_latency_ms"])
                 .set(ts_stats.delete_latency_ms);
             typesense_stats
